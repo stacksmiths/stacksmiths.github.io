@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * 1' # Weekly schedule
   workflow_dispatch: # Manual trigger
 
+permissions:
+  contents: write
+  statuses: write 
+
 jobs:
   update-metrics:
     runs-on: ubuntu-latest
