@@ -62,5 +62,5 @@ jobs:
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
-          message: "Update metrics.json with top repositories on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          message: "Update metrics.json with top repositories"
           add: "data/metrics.json"
