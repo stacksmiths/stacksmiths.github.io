@@ -3,15 +3,16 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
-    color: #333;
+    background-color: #181818; /* Deep dark gray */
+    color: #d4d4d4; /* Soft light gray for text */
     text-align: center;
 }
 
 header {
-    background-color: #007acc;
-    color: white;
+    background-color: #1e1e1e; /* Slightly lighter dark gray */
+    color: #d4d4d4;
     padding: 20px;
+    border-bottom: 2px solid #5e5e5e; /* Subtle gray highlight */
 }
 
 main {
@@ -20,6 +21,7 @@ main {
 
 h1, h2 {
     margin: 10px 0;
+    color: #ffffff; /* Bright white for headings */
 }
 
 /* Chart Section */
@@ -33,29 +35,38 @@ h1, h2 {
     margin: 20px auto;
     border-collapse: collapse;
     width: 80%;
+    background-color: #242424; /* Dark gray for table background */
+    color: #d4d4d4; /* Light gray text */
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 #data-table th, #data-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
+    border: 1px solid #333333; /* Subtle dark border */
+    padding: 12px 16px;
+    text-align: left;
 }
 
 #data-table th {
-    background-color: #007acc;
-    color: white;
+    background-color: #333333; /* Slightly lighter dark gray for headers */
+    color: #f0f0f0; /* Off-white text for headers */
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
 #data-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #2a2a2a; /* Slightly lighter for alternating rows */
 }
 
 #data-table tr:hover {
-    background-color: #ddd;
+    background-color: #3a3a3a; /* Hover effect with medium gray */
+    color: #ffffff; /* Bright white text on hover */
+    cursor: pointer;
 }
 
 /* Footer */
 footer {
     margin-top: 20px;
     font-size: 0.9em;
-    color: #555;
+    color: #666666; /* Muted gray for footer text */
 }
