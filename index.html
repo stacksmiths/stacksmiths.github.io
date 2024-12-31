@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StackSmiths Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>StackSmiths Organization Dashboard</h1>
+        <p>Visualizing top repositories by GitHub stars</p>
+    </header>
+
+    <main>
+        <section id="chart-section">
+            <canvas id="repoContributions" width="400" height="200"></canvas>
+        </section>
+
+        <section id="data-table-section">
+            <h2>Top Repositories Data</h2>
+            <table id="data-table">
+                <thead>
+                    <tr>
+                        <th>Repository</th>
+                        <th>Stars</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be injected here -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>Powered by <a href="https://github.com/stacksmiths" target="_blank">StackSmiths</a>. Data updates weekly.</p>
+    </footer>
+
+    <script src="scripts.js"></script>
+</body>
+</html>
