@@ -5,59 +5,62 @@ on:
     - cron: '0 0 * * 1' # Weekly schedule
   workflow_dispatch: # Manual trigger
 
+permissions:
+  contents: write
+  statuses: write
+
 jobs:
   update-metrics:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the repository
+      # Step 1: Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Step 2: Install jq for JSON processing
+      # Step 2: Cache apt packages to speed up installation
+      - name: Cache apt packages
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: ${{ runner.os }}-apt-cache
+
+      # Step 3: Install jq for JSON processing
       - name: Install jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
-      # Step 3: Fetch top 5 repositories and generate metrics.json
+      # Step 4: Fetch and generate metrics.json
       - name: Generate metrics.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Variables
+          # Define variables
           ORG_NAME="stacksmiths"
           API_URL="https://api.github.com/orgs/$ORG_NAME/repos"
           METRICS_FILE="data/metrics.json"
           
-          # Create the data directory if it doesn't exist
-          mkdir -p data
+          # Clean and prepare directories
+          rm -rf data && mkdir -p data
 
-          # Fetch repositories data from GitHub API
-          response=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
-
-          # Check if response is valid
-          if [[ -z "$response" ]]; then
-              echo "Failed to fetch repository data. Exiting."
+          # Fetch repositories data
+          response=$(curl -s -w "%{http_code}" -o repos.json -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+          status_code=$(tail -c 3 <<< "$response")
+          if [ "$status_code" -ne 200 ]; then
+              echo "Failed to fetch repository data. HTTP Status: $status_code"
               exit 1
           fi
+          response=$(head -c -3 <<< "$response")
 
-          # Parse and sort repositories by stargazers_count (top 5)
-          repos=$(echo "$response" | jq -r '.[] | {name: .name, stargazers_count: .stargazers_count} | @base64' | \
-              while read repo; do
-                  echo "$repo" | base64 --decode
-              done | jq -s 'sort_by(-.stargazers_count)[:5]')
-
-          # Generate metrics.json
-          echo "$repos" | jq -r 'reduce .[] as $repo ({}; .[$repo.name] = $repo.stargazers_count)' > "$METRICS_FILE"
-
+          # Parse, sort, and generate metrics.json
+          echo "$response" | jq 'map({name: .name, stars: .stargazers_count}) | sort_by(-.stars) | .[:5] | from_entries' > "$METRICS_FILE"
           echo "metrics.json generated successfully."
 
-      # Step 4: Commit and push changes to GitHub Pages
+      # Step 5: Commit and push changes
       - name: Commit and push changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add data/metrics.json
-          git commit -m "Update metrics.json with top repositories"
-          git push
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "Update metrics.json with top repositories on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          add: "data/metrics.json"
