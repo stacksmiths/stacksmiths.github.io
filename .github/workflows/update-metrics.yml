@@ -18,44 +18,48 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Step 2: Cache apt packages to speed up installation
-      - name: Cache apt packages
-        uses: actions/cache@v4
-        with:
-          path: /var/cache/apt
-          key: ${{ runner.os }}-apt-cache
-          restore-keys: ${{ runner.os }}-apt-cache
-
-      # Step 3: Install jq for JSON processing
+      # Step 2: Install jq for JSON processing
       - name: Install jq
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
 
-      # Step 4: Fetch and generate metrics.json
+      # Step 3: Fetch and generate metrics.json
       - name: Generate metrics.json
         env:
           API_URL: "https://api.github.com/orgs/${{ github.repository_owner }}/repos"
           METRICS_FILE: "data/metrics.json"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Clean and prepare directories
-          rm -rf data && mkdir -p data
-
-          # Fetch repositories data from GitHub API
-          response=$(curl -s -w "%{http_code}" -o repos.json -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
-          status_code=$(tail -c 3 <<< "$response")
-          if [ "$status_code" -ne 200 ]; then
-              echo "Failed to fetch repository data. HTTP Status: $status_code"
+          # Validate token availability
+          if [[ -z "$GITHUB_TOKEN" ]]; then
+              echo "Error: GITHUB_TOKEN is not available."
               exit 1
           fi
-          response=$(head -c -3 <<< "$response")
 
-          # Parse, sort, and generate metrics.json
-          echo "$response" | jq 'map({name: .name, stars: .stargazers_count}) | sort_by(-.stars) | .[:5] | from_entries' > "$METRICS_FILE"
+          # Prepare directories
+          rm -rf data && mkdir -p data
+
+          # Fetch repository data
+          status_code=$(curl -s -o response.json -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
+
+          # Check HTTP status code
+          if [ "$status_code" -ne 200 ]; then
+              echo "Failed to fetch repository data. HTTP Status: $status_code"
+              echo "Response:"
+              cat response.json
+              exit 1
+          fi
+
+          # Parse and sort repositories by stargazers_count (top 5)
+          repos=$(jq -r '.[] | {(.name): .stargazers_count}' response.json | jq -s add | jq -r 'to_entries | sort_by(-.value)[:5] | from_entries')
+
+          # Generate metrics.json
+          echo "$repos" | jq -r '.' > "$METRICS_FILE"
+
           echo "metrics.json generated successfully."
 
-      # Step 5: Commit and push changes
+      # Step 4: Commit and push changes
       - name: Commit and push changes
         uses: EndBug/add-and-commit@v9
         with:
