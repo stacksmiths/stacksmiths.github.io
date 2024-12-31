@@ -1,4 +1,4 @@
-name: Update GitHub Pages Metrics
+name: update-gh-pages-metrics
 
 on:
   schedule:
@@ -35,17 +35,14 @@ jobs:
       # Step 4: Fetch and generate metrics.json
       - name: Generate metrics.json
         env:
+          API_URL: "https://api.github.com/orgs/${{ github.repository_owner }}/repos"
+          METRICS_FILE: "data/metrics.json"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Define variables
-          ORG_NAME="stacksmiths"
-          API_URL="https://api.github.com/orgs/$ORG_NAME/repos"
-          METRICS_FILE="data/metrics.json"
-          
           # Clean and prepare directories
           rm -rf data && mkdir -p data
 
-          # Fetch repositories data
+          # Fetch repositories data from GitHub API
           response=$(curl -s -w "%{http_code}" -o repos.json -H "Authorization: token $GITHUB_TOKEN" "$API_URL")
           status_code=$(tail -c 3 <<< "$response")
           if [ "$status_code" -ne 200 ]; then
