@@ -1,6 +1,7 @@
 {
-    "Repo A": 120,
-    "Repo B": 90,
-    "Repo C": 50,
-    "Repo D": 30
+  "actions": 0,
+  "stacksmiths-vpc": 0,
+  "stacksmiths-devconfigs": 0,
+  ".github": 0,
+  "stacksmiths.github.io": 0
 }
